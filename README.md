@@ -1,6 +1,6 @@
 # FailureLens
 
-**Training-dynamics diagnostics for finding mislabeled, hard, and unstable classification samples.**
+**Training-dynamics and out-of-distribution diagnostics for reliable classification.**
 
 FailureLens records how a classifier behaves on every training example across epochs. It turns those trajectories into an auditable table that helps answer:
 
@@ -10,6 +10,35 @@ FailureLens records how a classifier behaves on every training example across ep
 - Which examples should a human inspect first?
 
 The project is designed as a compact research and teaching tool for reliable AI. It does **not** automatically declare that a sample is wrong; it prioritizes candidates for human review.
+
+## New in v0.2: synthetic OOD diagnostics
+
+Version 0.2 adds a post-hoc OOD module with a consistent “larger means more OOD-like” interface:
+
+- maximum softmax probability (MSP) baseline;
+- predictive entropy;
+- top-two probability margin;
+- classifier energy;
+- class-conditional Mahalanobis distance in the penultimate feature space;
+- split-conformal OOD p-values calibrated only on held-out ID data;
+- AUROC, AUPR-OOD, FPR@95TPR, ID false-alarm rate, and OOD detection power;
+- separate near-OOD, far-OOD, and deliberately high-confidence OOD stress tests.
+
+```bash
+python examples/demo_ood.py
+```
+
+The experiment writes `ood_metrics.json`, a per-sample score table, and an MSP/energy/Mahalanobis score map to `outputs/ood/`. See [`docs/ood_protocol.md`](docs/ood_protocol.md) for the evaluation contract and validity assumptions.
+
+One reference run (seed 7, 40 epochs) illustrates why multiple detectors are useful:
+
+| Detector | Near-OOD AUROC | Far-OOD AUROC | High-confidence OOD AUROC | ID false-alarm rate at α=0.05 |
+| --- | ---: | ---: | ---: | ---: |
+| MSP | 0.699 | 0.163 | 0.002 | 0.047 |
+| Energy | 0.675 | 0.060 | 0.002 | 0.036 |
+| Mahalanobis | 0.723 | 1.000 | 1.000 | 0.031 |
+
+The deliberately selected high-confidence OOD samples expose a known failure mode of softmax-derived scores: a classifier can be confidently wrong far from the training distribution. Feature-space distance catches this synthetic case, while near-OOD remains difficult. The table is a reproducible stress test, not a claim of universal method superiority.
 
 ## What it measures
 
@@ -87,12 +116,14 @@ For medical imaging, keep patient-level splits, audit clinically meaningful subg
 - Toneva et al. (2019), [An Empirical Study of Example Forgetting during Deep Neural Network Learning](https://arxiv.org/abs/1812.05159).
 - Pleiss et al. (2020), [Identifying Mislabeled Data using the Area Under the Margin Ranking](https://arxiv.org/abs/2001.10528).
 - Swayamdipta et al. (2020), [Dataset Cartography: Mapping and Diagnosing Datasets with Training Dynamics](https://aclanthology.org/2020.emnlp-main.746/).
+- Hendrycks and Gimpel (2017), [A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks](https://arxiv.org/abs/1610.02136).
+- Liu et al. (2020), [Energy-based Out-of-distribution Detection](https://papers.neurips.cc/paper/2020/hash/f5496252609c43eb8a3d147ab9b9c006-Abstract.html).
 
 FailureLens is an independent educational implementation inspired by these ideas. It does not reproduce every calibration or thresholding procedure in the original papers.
 
 ## Roadmap
 
-- CIFAR-10 label-noise example
+- CIFAR-10 label-noise and OOD examples
 - Multi-run stability and confidence intervals
 - Class-conditional and subgroup diagnostics
 - Medical-imaging dataset adapters

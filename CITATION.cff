@@ -4,8 +4,7 @@ title: "FailureLens: Training-Dynamics Diagnostics for Classification"
 type: software
 authors:
   - family-names: "ZXR"
-version: 0.1.0
-date-released: 2026-09-19
+version: 0.2.0
+date-released: 2026-09-21
 license: MIT
 repository-code: "https://github.com/RDTAI/FailureLens"
-

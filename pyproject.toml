@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "failurelens"
-version = "0.1.0"
-description = "Training-dynamics diagnostics for finding mislabeled, hard, and unstable classification samples."
+version = "0.2.0"
+description = "Training-dynamics and OOD diagnostics for reliable classification."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -24,4 +24,3 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py39"
-
