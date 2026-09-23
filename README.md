@@ -40,6 +40,28 @@ One reference run (seed 7, 40 epochs) illustrates why multiple detectors are use
 
 The deliberately selected high-confidence OOD samples expose a known failure mode of softmax-derived scores: a classifier can be confidently wrong far from the training distribution. Feature-space distance catches this synthetic case, while near-OOD remains difficult. The table is a reproducible stress test, not a claim of universal method superiority.
 
+## New in v0.3: forgotten regions versus OOD false alarms
+
+Version 0.3 connects training-time and inference-time failure analysis. It asks whether an ID test sample located near frequently forgotten training examples is more likely to be falsely rejected as OOD.
+
+```bash
+python examples/demo_forgetting_ood.py
+```
+
+The experiment transfers training-sample forgetting counts to independent ID test samples with inverse-distance-weighted k-nearest neighbours. OOD thresholds are calibrated on a separate ID calibration set. It then reports high-versus-low forgetting-region false-alarm rates, risk differences, half-count-corrected risk ratios, bootstrap confidence intervals, false-alarm ranking AUROC, and permutation p-values.
+
+One reference run (seed 13, 40 epochs, α=0.05, 30 neighbours) produced:
+
+| Detector | Overall ID FPR | Low-forgetting-region FPR | High-forgetting-region FPR | Risk difference (95% bootstrap CI) |
+| --- | ---: | ---: | ---: | ---: |
+| MSP | 0.058 | 0.000 | 0.233 | 0.233 [0.167, 0.300] |
+| Entropy | 0.043 | 0.000 | 0.173 | 0.173 [0.113, 0.233] |
+| Probability margin | 0.055 | 0.000 | 0.220 | 0.220 [0.153, 0.287] |
+| Energy | 0.043 | 0.000 | 0.167 | 0.167 [0.107, 0.227] |
+| Mahalanobis | 0.072 | 0.056 | 0.120 | 0.064 [0.009, 0.123] |
+
+In this synthetic run, output-based detectors concentrated most false alarms around overlapping, frequently forgotten class boundaries. The smaller Mahalanobis contrast suggests that part of the association is specific to output uncertainty. This is an association, not evidence that forgetting causes false alarms. See [`docs/forgetting_ood_study.md`](docs/forgetting_ood_study.md) for the estimand, uncertainty analysis, and leakage controls.
+
 ## What it measures
 
 | Signal | Interpretation |
